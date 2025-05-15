@@ -1,4 +1,3 @@
-# Variables générales
 CC = gcc
 
 CFLAGS = -Wall -Wextra -Werror -g
@@ -15,10 +14,9 @@ NAME = ft_malcolm
 SRC_DIR = src
 OBJ_DIR = obj
 
-# Fichiers source
 SRC = main.c $(wildcard $(SRC_DIR)/*.c)
 
-# Objets
+
 OBJ = $(addprefix $(OBJ_DIR)/, $(SRC:.c=.o))
 
 all: $(NAME)
@@ -26,7 +24,6 @@ all: $(NAME)
 $(NAME): $(LIBFT) $(OBJ)
 	$(CC) $(CFLAGS) $(INCLUDES) $(OBJ) $(LIBFT) -o $(NAME)
 
-# Création des fichiers objets dans obj/
 $(OBJ_DIR)/%.o: %.c
 	mkdir -p $(@D)
 	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@

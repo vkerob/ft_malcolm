@@ -24,6 +24,7 @@ SRC = ft_atoi.c \
 		ft_isalnum.c \
 		ft_isalpha.c \
 		ft_isdigit.c \
+		ft_isxdigit.c \
 		ft_isprint.c \
 		ft_is_plus_or_minus.c \
 		ft_free_tab.c \
@@ -35,6 +36,7 @@ SRC = ft_atoi.c \
 		ft_strdup.c \
 		ft_strlcpy.c \
 		ft_strlen.c \
+		ft_strcmp.c \
 		ft_strncmp.c \
 		ft_strnstr.c \
 		ft_strrchr.c \
