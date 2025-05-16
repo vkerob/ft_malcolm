@@ -33,8 +33,8 @@ static int resolve_ip(const char *input, char *dst, const char *label)
 	ret = getaddrinfo(input, NULL, &hints, &res);
 	if (ret != 0)
 	{
-		ft_fprintf(STDERR_FILENO, "Error resolving %s (%s): %s\n", label, input,
-				   gai_strerror(ret));
+		fprintf(stderr, "Error resolving %s (%s): %s\n", label, input,
+				gai_strerror(ret));
 		return (1);
 	}
 
@@ -42,7 +42,7 @@ static int resolve_ip(const char *input, char *dst, const char *label)
 	struct sockaddr_in *addr = (struct sockaddr_in *)res->ai_addr;
 	if (!inet_ntop(AF_INET, &addr->sin_addr, dst, INET_ADDRSTRLEN))
 	{
-		ft_fprintf(STDERR_FILENO, "inet_ntop failed for %s\n", label);
+		fprintf(stderr, "inet_ntop failed for %s\n", label);
 		freeaddrinfo(res);
 		return (1);
 	}
@@ -55,8 +55,8 @@ int parse_args(int argc, char **argv, t_args *args)
 {
 	if (argc != 5)
 	{
-		ft_fprintf(STDERR_FILENO, "Usage: ./ft_malcolm <src_ip> <src_mac> "
-								  "<target_ip> <target_mac>\n");
+		fprintf(stderr, "Usage: ./ft_malcolm <src_ip> <src_mac> "
+						"<target_ip> <target_mac>\n");
 		return (1);
 	}
 
@@ -67,7 +67,7 @@ int parse_args(int argc, char **argv, t_args *args)
 	// MAC source
 	if (!is_valid_mac(argv[2]))
 	{
-		ft_fprintf(STDERR_FILENO, "Invalid source MAC address: %s\n", argv[2]);
+		fprintf(stderr, "Invalid source MAC address: %s\n", argv[2]);
 		return (1);
 	}
 	ft_strlcpy(args->source_mac, argv[2], MAC_ADDR_LEN);
@@ -79,7 +79,7 @@ int parse_args(int argc, char **argv, t_args *args)
 	// MAC cible
 	if (!is_valid_mac(argv[4]))
 	{
-		ft_fprintf(STDERR_FILENO, "Invalid target MAC address: %s\n", argv[4]);
+		fprintf(stderr, "Invalid target MAC address: %s\n", argv[4]);
 		return (1);
 	}
 	ft_strlcpy(args->target_mac, argv[4], MAC_ADDR_LEN);

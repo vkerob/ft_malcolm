@@ -21,6 +21,10 @@
 #include <unistd.h>
 
 #define MAC_ADDR_LEN 18
+#define COLOR_RESET "\033[0m"
+#define COLOR_BLUE "\033[1;34m"
+#define COLOR_YELLOW "\033[1;33m"
+#define COLOR_GREEN "\033[1;32m"
 
 extern int g_raw_socket;
 
@@ -38,5 +42,9 @@ int	 parse_args(int argc, char **argv, t_args *args);
 void print_ip_decimal(const char *label, const char *ip_str);
 int	 setup_socket(const char *ifname);
 void print_arp_packet(const unsigned char *buffer, ssize_t size);
+int	 detect_interface(char *ifname, size_t len);
+void print_config_summary(t_args *args, bool verbose);
+int	 wait_for_arp_request(int sockfd, t_args *args);
+void send_arp_reply(int sockfd, t_args *args);
 
 #endif
