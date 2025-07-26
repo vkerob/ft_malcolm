@@ -1,4 +1,4 @@
-CC = gcc
+CC = clang
 
 CFLAGS = -Wall -Wextra -Werror -g
 
@@ -22,7 +22,7 @@ OBJ = $(addprefix $(OBJ_DIR)/, $(SRC:.c=.o))
 all: $(NAME)
 
 $(NAME): $(LIBFT) $(OBJ)
-	$(CC) $(CFLAGS) $(INCLUDES) $(OBJ) $(LIBFT) -o $(NAME)
+	$(CC) $(CFLAGS) $(INCLUDES) $(OBJ) $(LIBFT) -lpthread -o $(NAME)
 
 $(OBJ_DIR)/%.o: %.c
 	mkdir -p $(@D)
