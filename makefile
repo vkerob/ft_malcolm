@@ -1,12 +1,11 @@
+# Improved file structure for ft_malcolm
 CC = clang
-
 CFLAGS = -Wall -Wextra -Werror -g
 
 INCLUDE_DIR = includes
 LIBFT_DIR = ./libft
 
 INCLUDES = -I $(INCLUDE_DIR)
-
 LIBFT = $(LIBFT_DIR)/libft.a
 
 NAME = ft_malcolm
@@ -14,8 +13,8 @@ NAME = ft_malcolm
 SRC_DIR = src
 OBJ_DIR = obj
 
+# New organized source files
 SRC = main.c $(wildcard $(SRC_DIR)/*.c)
-
 
 OBJ = $(addprefix $(OBJ_DIR)/, $(SRC:.c=.o))
 

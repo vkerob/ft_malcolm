@@ -4,8 +4,9 @@ int setup_socket(const char *ifname)
 {
 	int sockfd;
 
-	// Create a raw socket for ARP protocol (Ethernet level)
-	sockfd = socket(AF_PACKET, SOCK_RAW, htons(ETH_P_ARP));
+	// Create a raw socket for ALL protocols (Ethernet level)
+	// ETH_P_ALL allows us to capture both ARP and IP traffic (for bonus)
+	sockfd = socket(AF_PACKET, SOCK_RAW, htons(ETH_P_ALL));
 	if (sockfd < 0)
 	{
 		perror("socket");

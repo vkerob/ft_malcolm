@@ -1,76 +1,29 @@
 #include "ft_malcolm.h"
 
-int g_raw_socket = -1;
+int		  g_raw_socket = -1;
+pthread_t g_forward_thread;
+bool	  g_thread_active = false;
 
 int main(int argc, char **argv)
 {
-	bool verbose = false;
-	bool attack_mode = false;
-	char source_ip_mac[MAC_ADDR_LEN] = { 0 };
-
 	if (getuid() != 0)
 	{
 		fprintf(stderr, "You must be root to run this program.\n");
 		return (1);
 	}
 
-	// Parse flags
-	int i = 1;
-	while (i < argc && argv[i][0] == '-')
-	{
-		if (ft_strcmp(argv[i], "--verbose") == 0)
-		{
-			verbose = true;
-			i++;
-		}
-		else if (ft_strncmp(argv[i], "--attack", 8) == 0)
-		{
-			attack_mode = true;
-			// Check if --attack=MAC_ADDRESS format
-			if (argv[i][8] == '=' && argv[i][9] != '\0')
-			{
-				// Copy the MAC address after the '='
-				ft_strlcpy(source_ip_mac, &argv[i][9], MAC_ADDR_LEN);
-				printf("[Info] Source IP MAC provided: %s\n", source_ip_mac);
-			}
-			else
-			{
-				fprintf(stderr, "Error: --attack requires a MAC address: "
-								"--attack=MAC_ADDRESS\n");
-				fprintf(stderr,
-						"Usage: ./ft_malcolm [--verbose] --attack=MAC_ADDRESS "
-						"<src_ip> <src_mac> <target_ip> <target_mac>\n");
-				return (1);
-			}
-			i++;
-		}
-		else
-		{
-			fprintf(stderr, "Unknown option: %s\n", argv[i]);
-			fprintf(stderr,
-					"Usage: ./ft_malcolm [--verbose] --attack=MAC_ADDRESS "
-					"<src_ip> <src_mac> <target_ip> <target_mac>\n");
-			return (1);
-		}
-	}
-
-	argc -= (i - 1);
-	argv += (i - 1);
-
 	// Set up signal handler to close the socket on exit
 	setup_signal_handlers();
 
-	// verify arguments and parse them
+	// Parse flags and initialize arguments structure
 	t_args args;
-	args.mitm_attack = attack_mode;
-	args.verbose = verbose;
-
-	// Copy the provided source IP MAC if available
-	if (source_ip_mac[0] != '\0')
+	if (parse_flags(&argc, &argv, &args) != 0)
 	{
-		ft_strlcpy(args.source_ip_mac, source_ip_mac, MAC_ADDR_LEN);
+		fprintf(stderr, "Error parsing flags.\n");
+		return (1);
 	}
 
+	// Parse remaining arguments
 	if (parse_args(argc, argv, &args) != 0)
 	{
 		fprintf(stderr, "Error parsing arguments.\n");
@@ -92,7 +45,7 @@ int main(int argc, char **argv)
 		return (1);
 	}
 
-	if (attack_mode)
+	if (args.mitm_attack)
 	{
 		printf(COLOR_GREEN
 			   "[Info] Launching full MITM attack mode...\n" COLOR_RESET);
@@ -103,11 +56,21 @@ int main(int argc, char **argv)
 		// listen for ARP requests
 		if (wait_for_arp_request(g_raw_socket, &args, args.verbose) == 0)
 		{
+			printf(COLOR_BLUE
+				   "Now sending an ARP reply to the target address with "
+				   "spoofed source, please wait...\n" COLOR_RESET);
+			sleep(3);
+
 			// create and send falsified ARP reply
 			send_arp_reply(g_raw_socket, &args);
+
+			printf(COLOR_GREEN
+				   "Sent an ARP reply packet, you may now check the arp table "
+				   "on the target.\n" COLOR_RESET);
 		}
 	}
 
+	printf(COLOR_CYAN "Exiting program..\n" COLOR_RESET);
 	close(g_raw_socket);
 	return (0);
 }

@@ -3,18 +3,40 @@
 void sigint_handler(int signum)
 {
 	(void)signum;
+	printf("\nReceived SIGINT (Ctrl+C), exiting cleanly...\n");
+
+	// Clean up thread if active
+	if (g_thread_active)
+	{
+		pthread_cancel(g_forward_thread);
+		pthread_join(g_forward_thread, NULL);
+		g_thread_active = false;
+	}
+
+	// Close socket
 	if (g_raw_socket >= 0)
 		close(g_raw_socket);
-	printf("\nReceived SIGINT (Ctrl+C), exiting cleanly...\n");
+
 	exit(0);
 }
 
 void sigterm_handler(int signum)
 {
 	(void)signum;
+	printf("\nReceived SIGTERM, exiting cleanly...\n");
+
+	// Clean up thread if active
+	if (g_thread_active)
+	{
+		pthread_cancel(g_forward_thread);
+		pthread_join(g_forward_thread, NULL);
+		g_thread_active = false;
+	}
+
+	// Close socket
 	if (g_raw_socket >= 0)
 		close(g_raw_socket);
-	printf("\nReceived SIGTERM, exiting cleanly...\n");
+
 	exit(0);
 }
 
