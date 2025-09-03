@@ -5,6 +5,8 @@ To achieve this, I've identified several fundamental concepts to understand:
 
 - The [OSI model](https://en.wikipedia.org/wiki/OSI_model), particularly layer 2 (data link) where the mapping between MAC and IP addresses occurs.
 
+![OSI Model](docs/OSI_model.jpg)
+
 - The ARP protocol, which allows a machine to discover the MAC address associated with a given IP address in a local network.
 
 - The ARP table, internal memory maintaining these associations, which can be corrupted by an attack called ARP spoofing/poisoning.
