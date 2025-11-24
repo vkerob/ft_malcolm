@@ -3,3 +3,4 @@
 ft_malcolm
 .cache
 compile_commands.json
+.devcontainer/

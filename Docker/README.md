@@ -22,7 +22,7 @@ This Docker environment reproduces a local network to test and understand Man-in
 - **Function**: Internet gateway for the local network
 - **Criticality**: Main target of ARP poisoning
 
-#### TARGET (172.31.42.10) - The victim machine
+#### TARGET (172.31.42.10) - The target machine
 
 - **Function**: Normal network user generating traffic
 - **Impact**: All its traffic can be intercepted without its knowledge
@@ -71,4 +71,4 @@ To observe the effectiveness of the MITM attack, monitor changes in the TARGET m
 - **Docker gateway**: 172.31.42.1 (infrastructure)
 - **Simulated gateway**: 172.31.42.254 (spoofing target)
 - **Attacking machine**: 172.31.42.100
-- **Victim machine**: 172.31.42.10
+- **target machine**: 172.31.42.10

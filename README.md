@@ -42,8 +42,8 @@ An ARP request contains:
 - **Hardware Length**: MAC address size (6 bytes)
 - **Protocol Length**: IP address size (4 bytes)
 - **Operation**: Operation type (Request = 1, Reply = 2)
-- **Sender MAC**: Sender's MAC address
-- **Sender IP**: Sender's IP address
+- **src MAC**: src's MAC address
+- **src IP**: src's IP address
 - **Target MAC**: Target's MAC address
 - **Target IP**: Target's IP address
 

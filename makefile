@@ -1,11 +1,11 @@
 # Improved file structure for ft_malcolm
 CC = clang
-CFLAGS = -Wall -Wextra -Werror -g
+CFLAGS = -Wall -Wextra -Werror -g -std=c11 -D_GNU_SOURCE
 
 INCLUDE_DIR = includes
 LIBFT_DIR = ./libft
 
-INCLUDES = -I $(INCLUDE_DIR)
+INCLUDES = -I $(INCLUDE_DIR) -I $(LIBFT_DIR)
 LIBFT = $(LIBFT_DIR)/libft.a
 
 NAME = ft_malcolm

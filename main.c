@@ -1,8 +1,9 @@
 #include "ft_malcolm.h"
+#include <net/if.h>
 
-int		  g_raw_socket = -1;
-pthread_t g_forward_thread;
-bool	  g_thread_active = false;
+int			g_raw_socket = -1;
+pthread_t	g_forward_thread;
+atomic_bool g_stop = false;
 
 int main(int argc, char **argv)
 {
@@ -11,9 +12,6 @@ int main(int argc, char **argv)
 		fprintf(stderr, "You must be root to run this program.\n");
 		return (1);
 	}
-
-	// Set up signal handler to close the socket on exit
-	setup_signal_handlers();
 
 	// Parse flags and initialize arguments structure
 	t_args args;
@@ -45,6 +43,9 @@ int main(int argc, char **argv)
 		return (1);
 	}
 
+	// Set up signal handler to close the socket on exit
+	setup_signal_handlers();
+
 	if (args.mitm_attack)
 	{
 		printf(COLOR_GREEN
@@ -59,10 +60,13 @@ int main(int argc, char **argv)
 			printf(COLOR_BLUE
 				   "Now sending an ARP reply to the target address with "
 				   "spoofed source, please wait...\n" COLOR_RESET);
-			sleep(3);
+			sleep(5);
 
 			// create and send falsified ARP reply
-			send_arp_reply(g_raw_socket, &args);
+			if (send_arp_reply(g_raw_socket, &args, args.source_mac,
+							   args.source_ip, args.target_mac, args.target_ip,
+							   true))
+				return (1);
 
 			printf(COLOR_GREEN
 				   "Sent an ARP reply packet, you may now check the arp table "

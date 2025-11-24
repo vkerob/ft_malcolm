@@ -15,7 +15,7 @@ COPY . /root/ft_malcolm
 
 WORKDIR /root/ft_malcolm
 
-RUN make
+RUN make re
 
 COPY Docker/source/entrypoint.sh /entrypoint.sh
 COPY Docker/source/get_params.sh /root/ft_malcolm/get_params.sh

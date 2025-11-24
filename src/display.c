@@ -1,33 +1,34 @@
 #include "ft_malcolm.h"
+#include "packet_utils.h"
 
-void print_sent_arp_reply(t_args *args)
+void print_sent_arp_reply(char *ifname, char *src_mac, char *spoofed_ip,
+						  char *target_mac, char *target_ip)
 {
 	printf(COLOR_GREEN "====================== ARP Reply Sent "
 					   "======================\n" COLOR_RESET);
-	printf(COLOR_CYAN "From Interface          : " COLOR_RESET "%s\n",
-		   args->ifname);
+	printf(COLOR_CYAN "From Interface          : " COLOR_RESET "%s\n", ifname);
 	printf(COLOR_CYAN "Ethernet Dest MAC       : " COLOR_RESET COLOR_BLUE
 					  "%s\n" COLOR_RESET,
-		   args->target_mac);
+		   target_mac);
 	printf(COLOR_CYAN "Ethernet Source MAC     : " COLOR_RESET COLOR_YELLOW
 					  "%s\n" COLOR_RESET,
-		   args->source_mac);
+		   src_mac);
 	printf(COLOR_CYAN "EtherType               : " COLOR_RESET COLOR_YELLOW
 					  "0x0806 (ARP)\n" COLOR_RESET);
-	printf(COLOR_CYAN "Sender MAC (spoofed)    : " COLOR_RESET COLOR_GREEN
+	printf(COLOR_CYAN "src MAC              : " COLOR_RESET COLOR_GREEN
 					  "%s\n" COLOR_RESET,
-		   args->source_mac);
-	printf(COLOR_CYAN "Sender IP (spoofed)     : " COLOR_RESET COLOR_GREEN
+		   src_mac);
+	printf(COLOR_CYAN "src IP (spoofed)     : " COLOR_RESET COLOR_GREEN
 					  "%s\n" COLOR_RESET,
-		   args->source_ip);
+		   spoofed_ip);
 	printf(COLOR_CYAN "Target MAC              : " COLOR_RESET COLOR_BLUE
 					  "%s\n" COLOR_RESET,
-		   args->target_mac);
+		   target_mac);
 	printf(COLOR_CYAN "Target IP               : " COLOR_RESET COLOR_BLUE
 					  "%s\n" COLOR_RESET,
-		   args->target_ip);
+		   target_ip);
 	printf(COLOR_GREEN "Message: Telling %s that %s is at %s\n" COLOR_RESET,
-		   args->target_ip, args->source_ip, args->source_mac);
+		   target_ip, spoofed_ip, src_mac);
 	printf(COLOR_GREEN
 		   "========================================================"
 		   "=======\n\n" COLOR_RESET);
@@ -50,45 +51,45 @@ void print_ip_decimal(const char *label, const char *ip_str)
 
 void print_arp_packet(const unsigned char *buffer, ssize_t size)
 {
-	if (size < 42) // 14 (Ethernet) + 28 (ARP)
+
+	if (size < ARP_PACKET_MIN_LEN) /* ETH_HDR_LEN + ARP_HDR_LEN */
 	{
 		printf(COLOR_RED "Packet too short to be an ARP frame.\n" COLOR_RESET);
 		return;
 	}
 
 	const unsigned char *eth_header = buffer;
-	const unsigned char *arp_header = buffer + 14;
-
-	uint16_t			 opcode = ntohs(*(uint16_t *)(arp_header + 6));
-	const unsigned char *sender_mac = arp_header + 8;
-	const unsigned char *sender_ip = arp_header + 14;
-	const unsigned char *target_mac = arp_header + 18;
-	const unsigned char *target_ip = arp_header + 24;
+	uint16_t			 opcode;
+	opcode = pkt_get_arp_opcode(buffer);
+	const unsigned char *src_mac = pkt_arp_src_mac(buffer);
+	const unsigned char *src_ip = pkt_arp_src_ip(buffer);
+	const unsigned char *target_mac = pkt_arp_target_mac(buffer);
+	const unsigned char *target_ip = pkt_arp_target_ip(buffer);
 
 	char ip_str[INET_ADDRSTRLEN];
 
-	// Dynamic title based on packet type
 	if (opcode == 1)
+	{
 		printf(COLOR_BLUE "====================== ARP Request Received "
 						  "======================\n" COLOR_RESET);
-	else if (opcode == 2)
-		printf(COLOR_BLUE "====================== ARP Reply Received "
-						  "======================\n" COLOR_RESET);
-	else
-		printf(COLOR_BLUE "====================== ARP Packet Received "
-						  "======================\n" COLOR_RESET);
-
-	// Operation type
-	if (opcode == 1)
 		printf(COLOR_GREEN
 			   "Operation               : ARP Request (1)\n" COLOR_RESET);
+	}
 	else if (opcode == 2)
+	{
+		printf(COLOR_BLUE "====================== ARP Reply Received "
+						  "======================\n" COLOR_RESET);
 		printf(COLOR_GREEN
 			   "Operation               : ARP Reply (2)\n" COLOR_RESET);
+	}
 	else
+	{
+		printf(COLOR_BLUE "====================== ARP Packet Received "
+						  "======================\n" COLOR_RESET);
 		printf(COLOR_YELLOW
 			   "Operation               : Unknown (%d)\n" COLOR_RESET,
 			   opcode);
+	}
 
 	// Ethernet
 	printf(COLOR_CYAN "Ethernet Destination MAC: " COLOR_RESET COLOR_YELLOW
@@ -101,23 +102,25 @@ void print_arp_packet(const unsigned char *buffer, ssize_t size)
 		   eth_header[6], eth_header[7], eth_header[8], eth_header[9],
 		   eth_header[10], eth_header[11]);
 
-	uint16_t ethertype = (eth_header[12] << 8) | eth_header[13];
+	uint16_t ethertype;
+	memcpy(&ethertype, eth_header + ETH_TYPE_OFFSET, sizeof(ethertype));
+	ethertype = ntohs(ethertype);
 	printf(COLOR_CYAN "EtherType               : " COLOR_RESET COLOR_YELLOW
 					  "0x%04x\n" COLOR_RESET,
 		   ethertype);
 
 	// ARP information
-	printf(COLOR_CYAN "Sender MAC              : " COLOR_RESET COLOR_GREEN
+	printf(COLOR_CYAN "src MAC              : " COLOR_RESET COLOR_GREEN
 					  "%02x:%02x:%02x:%02x:%02x:%02x\n" COLOR_RESET,
-		   sender_mac[0], sender_mac[1], sender_mac[2], sender_mac[3],
-		   sender_mac[4], sender_mac[5]);
+		   src_mac[0], src_mac[1], src_mac[2], src_mac[3], src_mac[4],
+		   src_mac[5]);
 
-	if (inet_ntop(AF_INET, sender_ip, ip_str, sizeof(ip_str)))
-		printf(COLOR_CYAN "Sender IP               : " COLOR_RESET COLOR_GREEN
+	if (inet_ntop(AF_INET, src_ip, ip_str, sizeof(ip_str)))
+		printf(COLOR_CYAN "src IP               : " COLOR_RESET COLOR_GREEN
 						  "%s\n" COLOR_RESET,
 			   ip_str);
 	else
-		printf(COLOR_CYAN "Sender IP               : " COLOR_RESET COLOR_RED
+		printf(COLOR_CYAN "src IP               : " COLOR_RESET COLOR_RED
 						  "(invalid)\n" COLOR_RESET);
 
 	printf(COLOR_CYAN "Target MAC              : " COLOR_RESET COLOR_BLUE
@@ -146,8 +149,8 @@ void print_config_summary(t_args *args)
 	printf(COLOR_CYAN "Our MAC    : " COLOR_RESET "%s " COLOR_YELLOW
 					  "(attacker)\n" COLOR_RESET,
 		   args->source_mac);
-	printf(COLOR_CYAN "Victim IP  : " COLOR_RESET "%s\n", args->target_ip);
-	printf(COLOR_CYAN "Victim MAC : " COLOR_RESET "%s\n", args->target_mac);
+	printf(COLOR_CYAN "target IP  : " COLOR_RESET "%s\n", args->target_ip);
+	printf(COLOR_CYAN "target MAC : " COLOR_RESET "%s\n", args->target_mac);
 	printf(COLOR_CYAN "Attack Mode: " COLOR_RESET "%s\n",
 		   args->mitm_attack ? COLOR_GREEN "ENABLED" COLOR_RESET
 							 : COLOR_RED "DISABLED" COLOR_RESET);
